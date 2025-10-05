@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>病院UXフォーム</title>
+  <style>
+    body { font-family: sans-serif; }
+    .suggestions {
+      border: 1px solid #ccc;
+      max-height: 150px;
+      overflow-y: auto;
+      position: absolute;
+      background: #fff;
+      width: 300px;
+      z-index: 1000;
+    }
+    .suggestions div {
+      padding: 5px;
+      cursor: pointer;
+    }
+    .suggestions div:hover {
+      background: #eee;
+    }
+    .form-group { margin: 10px 0; }
+  </style>
+</head>
+<body>
+  <h1>病院UXフォーム</h1>
+
+  <!-- 病院検索 -->
+  <div class="form-group" style="position:relative;">
+    <label for="hospitalSearch">病院検索:</label><br>
+    <input type="text" id="hospitalSearch" placeholder="病院名・フリガナ・略称で検索" autocomplete="off" style="width:300px;">
+    <div id="suggestions" class="suggestions"></div>
+  </div>
+
+  <!-- hidden項目（病院情報） -->
+  <input type="hidden" id="hospitalId" name="hospitalId">
+  <input type="hidden" id="hospitalName" name="hospitalName">
+  <input type="hidden" id="hospitalFurigana" name="hospitalFurigana">
+  <input type="hidden" id="abbreviation" name="abbreviation">
+  <input type="hidden" id="abbreviationFurigana" name="abbreviationFurigana">
+  <input type="hidden" id="institutionType" name="institutionType">
+  <input type="hidden" id="prefCode" name="prefCode">
+  <input type="hidden" id="cityCode" name="cityCode">
+  <input type="hidden" id="address" name="address">
+  <input type="hidden" id="lat" name="lat">
+  <input type="hidden" id="lng" name="lng">
+  <input type="hidden" id="homepage" name="homepage">
+
+  <!-- UX入力項目 -->
+  <div class="form-group">
+    <label>診療科: <input type="text" id="department"></label>
+  </div>
+  <div class="form-group">
+    <label>受付時刻: <input type="time" id="checkinTime"></label>
+  </div>
+  <div class="form-group">
+    <label>診療開始時刻: <input type="time" id="startTime"></label>
+  </div>
+  <div class="form-group">
+    <label>会計終了時刻: <input type="time" id="paymentTime"></label>
+  </div>
+  <div class="form-group">
+    <label>予約有無:
+      <select id="reservation">
+        <option value="なし">なし</option>
+        <option value="あり">あり</option>
+      </select>
+    </label>
+  </div>
+  <div class="form-group">
+    <label>予約時刻: <input type="time" id="reservationTime"></label>
+  </div>
+  <div class="form-group">
+    <label>自由記述:<br>
+      <textarea id="freeComment" rows="4" cols="40"></textarea>
+    </label>
+  </div>
+
+  <button type="button" onclick="submitForm()">送信</button>
+
+  <script>
+    let hospitalMaster = [];
+
+    // 起動時に外部JSONを読み込む
+    fetch("hospital-master.json")
+      .then(res => res.json())
+      .then(data => hospitalMaster = data);
+
+    const searchInput = document.getElementById('hospitalSearch');
+    const suggestions = document.getElementById('suggestions');
+
+    searchInput.addEventListener('input', () => {
+      const query = searchInput.value.trim();
+      suggestions.innerHTML = '';
+      if (!query) return;
+
+      const results = hospitalMaster.filter(h =>
+        h["病院名"].includes(query) ||
+        h["病院名（フリガナ）"].includes(query) ||
+        h["略称"].includes(query) ||
+        h["略称（フリガナ）"].includes(query)
+      );
+
+      results.forEach(h => {
+        const div = document.createElement('div');
+        div.textContent = `${h["病院名"]} (${h["略称"]})`;
+        div.onclick = () => selectHospital(h);
+        suggestions.appendChild(div);
+      });
+    });
+
+    function selectHospital(h) {
+      // hiddenに埋める
+      document.getElementById('hospitalId').value = h["病院ID"];
+      document.getElementById('hospitalName').value = h["病院名"];
+      document.getElementById('hospitalFurigana').value = h["病院名（フリガナ）"];
+      document.getElementById('abbreviation').value = h["略称"];
+      document.getElementById('abbreviationFurigana').value = h["略称（フリガナ）"];
+      document.getElementById('institutionType').value = h["機関区分"];
+      document.getElementById('prefCode').value = h["都道府県コード"];
+      document.getElementById('cityCode').value = h["市区町村コード"];
+      document.getElementById('address').value = h["所在地"];
+      document.getElementById('lat').value = h["緯度"];
+      document.getElementById('lng').value = h["経度"];
+      document.getElementById('homepage').value = h["ホームページ"];
+
+      // 入力ボックスに病院名を表示
+      searchInput.value = h["病院名"];
+      suggestions.innerHTML = '';
+    }
+
+    function submitForm() {
+      const payload = {
+        hospitalId: document.getElementById('hospitalId').value,
+        hospitalName: document.getElementById('hospitalName').value,
+        hospitalFurigana: document.getElementById('hospitalFurigana').value,
+        abbreviation: document.getElementById('abbreviation').value,
+        abbreviationFurigana: document.getElementById('abbreviationFurigana').value,
+        institutionType: document.getElementById('institutionType').value,
+        prefCode: document.getElementById('prefCode').value,
+        cityCode: document.getElementById('cityCode').value,
+        address: document.getElementById('address').value,
+        lat: document.getElementById('lat').value,
+        lng: document.getElementById('lng').value,
+        homepage: document.getElementById('homepage').value,
+        department: document.getElementById('department').value,
+        checkinTime: document.getElementById('checkinTime').value,
+        startTime: document.getElementById('startTime').value,
+        paymentTime: document.getElementById('paymentTime').value,
+        reservation: document.getElementById('reservation').value,
+        reservationTime: document.getElementById('reservationTime').value,
+        freeComment: document.getElementById('freeComment').value
+      };
+
+      console.log("送信データ:", payload);
+
+      // 実際は Apps Script WebアプリのURLに送信
+      // fetch("YOUR_SCRIPT_URL", {
+      //   method: "POST",
+      //   body: JSON.stringify(payload)
+      // });
+    }
+  </script>
+</body>
+</html>

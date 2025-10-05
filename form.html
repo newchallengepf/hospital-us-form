@@ -86,8 +86,8 @@
 
     // 起動時に軽量版と詳細版を読み込む
     Promise.all([
-      fetch("hospital-master-light.json").then(res => res.json()),
-      fetch("hospital-master-detail.json").then(res => res.json())
+      fetch("./hospital-master-light.json").then(res => res.json()),
+      fetch("./hospital-master-detail.json").then(res => res.json())
     ]).then(([light, detail]) => {
       hospitalMasterLight = light;
       hospitalMasterDetail = detail;

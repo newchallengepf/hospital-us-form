@@ -86,13 +86,14 @@
 
     // 起動時に軽量版と詳細版を読み込む
     Promise.all([
-      fetch("https://newchallengepf.github.io/hospital-us-form/hospital-master-light.json").then(res => {
+      fetch("https://newchallengepf.github.io/hospital-us-form/hospital-master-light.json")
+      .then(res => {
         if (!res.ok) throw new Error("エラー");
-          retrun res.json());
+          retrun res.json();
       }),
       fetch("https://newchallengepf.github.io/hospital-us-form/hospital-master-detail.json").then(res => {
         if (!res.ok) throw new Error("エラー");
-          retrun res.json());
+          retrun res.json();
       })
     ]).then(([light, detail]) => {
       hospitalMasterLight = light;

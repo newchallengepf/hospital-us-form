@@ -91,6 +91,8 @@
     ]).then(([light, detail]) => {
       hospitalMasterLight = light;
       hospitalMasterDetail = detail;
+    }].catch(err => {
+      console.error("JSON読み込みエラー",err);
     });
 
     const searchInput = document.getElementById('hospitalSearch');

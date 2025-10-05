@@ -89,12 +89,12 @@
       fetch("https://newchallengepf.github.io/hospital-us-form/hospital-master-light.json")
       .then(res => {
         if (!res.ok) throw new Error("エラー");
-          retrun res.json();
+          return res.json();
       }),
       fetch("https://newchallengepf.github.io/hospital-us-form/hospital-master-detail.json")
       .then(res => {
         if (!res.ok) throw new Error("エラー");
-          retrun res.json();
+          return res.json();
       })
     ]).then(([light, detail]) => {
       hospitalMasterLight = light;

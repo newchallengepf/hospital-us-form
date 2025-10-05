@@ -81,22 +81,28 @@
   <button type="button" onclick="submitForm()">送信</button>
 
   <script>
-    let hospitalMaster = [];
+    let hospitalMasterLight = [];
+    let hospitalMasterDetail = [];
 
-    // 起動時に外部JSONを読み込む
-    fetch("hospital-master.json")
-      .then(res => res.json())
-      .then(data => hospitalMaster = data);
+    // 起動時に軽量版と詳細版を読み込む
+    Promise.all([
+      fetch("hospital-master-light.json").then(res => res.json()),
+      fetch("hospital-master-detail.json").then(res => res.json())
+    ]).then(([light, detail]) => {
+      hospitalMasterLight = light;
+      hospitalMasterDetail = detail;
+    });
 
     const searchInput = document.getElementById('hospitalSearch');
     const suggestions = document.getElementById('suggestions');
 
+    // 入力イベントで候補を表示
     searchInput.addEventListener('input', () => {
       const query = searchInput.value.trim();
       suggestions.innerHTML = '';
       if (!query) return;
 
-      const results = hospitalMaster.filter(h =>
+      const results = hospitalMasterLight.filter(h =>
         h["病院名"].includes(query) ||
         h["病院名（フリガナ）"].includes(query) ||
         h["略称"].includes(query) ||
@@ -111,26 +117,33 @@
       });
     });
 
+    // 候補選択時
     function selectHospital(h) {
-      // hiddenに埋める
+      // 軽量版から基本情報を埋める
       document.getElementById('hospitalId').value = h["病院ID"];
       document.getElementById('hospitalName').value = h["病院名"];
       document.getElementById('hospitalFurigana').value = h["病院名（フリガナ）"];
       document.getElementById('abbreviation').value = h["略称"];
       document.getElementById('abbreviationFurigana').value = h["略称（フリガナ）"];
-      document.getElementById('institutionType').value = h["機関区分"];
-      document.getElementById('prefCode').value = h["都道府県コード"];
-      document.getElementById('cityCode').value = h["市区町村コード"];
-      document.getElementById('address').value = h["所在地"];
-      document.getElementById('lat').value = h["緯度"];
-      document.getElementById('lng').value = h["経度"];
-      document.getElementById('homepage').value = h["ホームページ"];
+
+      // 詳細版から住所などを埋める
+      const detail = hospitalMasterDetail.find(d => d["病院ID"] === h["病院ID"]);
+      if (detail) {
+        document.getElementById('institutionType').value = detail["機関区分"];
+        document.getElementById('prefCode').value = detail["都道府県コード"];
+        document.getElementById('cityCode').value = detail["市区町村コード"];
+        document.getElementById('address').value = detail["所在地"];
+        document.getElementById('lat').value = detail["緯度"];
+        document.getElementById('lng').value = detail["経度"];
+        document.getElementById('homepage').value = detail["ホームページ"];
+      }
 
       // 入力ボックスに病院名を表示
       searchInput.value = h["病院名"];
       suggestions.innerHTML = '';
     }
 
+    // 送信処理
     function submitForm() {
       const payload = {
         hospitalId: document.getElementById('hospitalId').value,
